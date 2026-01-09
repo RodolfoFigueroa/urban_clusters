@@ -9,6 +9,8 @@ from matplotlib.axes import Axes
 from matplotlib.colorbar import ColorbarBase
 from matplotlib.figure import Figure
 from matplotlib.projections.polar import PolarAxes
+from photutils.utils import make_random_cmap
+import matplotlib.colors as mcol
 
 from urban_clusters.constants import (
     SECTOR_NAME_MAP,
@@ -121,7 +123,12 @@ def plot_num_jobs(
     ax.yaxis.set_major_formatter("{x:,.0f}")
 
 
-def plot_circular_hist(row: pd.Series, *, ax: PolarAxes, annotate_top: bool = False):
+def plot_circular_hist(
+    row: pd.Series,
+    *,
+    ax: PolarAxes,
+    annotate_top: bool = False,
+) -> None:
     ax.set_theta_zero_location("N")
     spoke_labels = row.index.tolist()
     data = row.to_numpy()
@@ -185,7 +192,7 @@ def plot_centroids(
     if figsize is None:
         figsize = (8, 10 / 3 * num_rows)
 
-    fig, axes = plt.subplots(num_rows, 2, figsize=figsize, subplot_kw=dict(polar=True))
+    fig, axes = plt.subplots(num_rows, 2, figsize=figsize, subplot_kw={"polar": True})
 
     # Fix if number of rows is one
     if num_rows == 1:
@@ -210,3 +217,9 @@ def plot_centroids(
     if len(df_centroids) % 2 != 0:
         axes[-1, -1].set_visible(False)
     return fig, axes
+
+
+def generate_unique_colors(labels: pd.Series) -> pd.Series:
+    cmap = make_random_cmap(labels.nunique(dropna=True), seed=42)
+    norm = mcol.Normalize(vmin=labels.min(), vmax=labels.max())
+    return labels.map(lambda x: mcol.rgb2hex(cmap(norm(x))) if pd.notna(x) else "#a9a9a9")

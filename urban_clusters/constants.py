@@ -124,16 +124,28 @@ SUBSECTOR_NAME_MAP = {
     492: "Servicios de mensajería y paquetería",
     493: "Servicios de almacenamiento",
     512: "Industria fílmica y del video, e industria del sonido",
-    513: "Edición de periódicos, revistas, libros, directorios, software y otros materiales",
+    513: (
+        "Edición de periódicos, revistas, libros, directorios, software y "
+        "otros materiales"
+    ),
     516: "Radio y televisión y provisión de contenido",
     517: "Telecomunicaciones",
-    518: "Provisión de infraestructura de servicios de cómputo, procesamiento de datos, hospedaje de páginas de internet y otros servicios relacionados",
-    519: "Bibliotecas, archivos, portales de búsqueda en la red y otros servicios de suministro de información",
+    518: (
+        "Provisión de infraestructura de servicios de cómputo, procesamiento "
+        "de datos, hospedaje de páginas de internet y otros servicios relacionados"
+    ),
+    519: (
+        "Bibliotecas, archivos, portales de búsqueda en la red y otros "
+        "servicios de suministro de información"
+    ),
     521: "Banca central",
     522: "Instituciones de intermediación crediticia y financiera no bursátil",
     523: "Actividades bursátiles, cambiarias y de inversión financiera",
     524: "Compañías de seguros, fianzas, y administración de fondos para el retiro",
-    525: "Sociedades de inversión especializadas en fondos para el retiro y fondos de inversión",
+    525: (
+        "Sociedades de inversión especializadas en fondos para el retiro y "
+        "fondos de inversión"
+    ),
     531: "Servicios inmobiliarios",
     532: "Servicios de alquiler de bienes muebles",
     533: "Servicios de alquiler de marcas registradas, patentes y franquicias",
@@ -146,9 +158,14 @@ SUBSECTOR_NAME_MAP = {
     622: "Hospitales",
     623: "Residencias de asistencia social y para el cuidado de la salud",
     624: "Otros servicios de asistencia social",
-    711: "Servicios artísticos, culturales y deportivos, y otros servicios relacionados",
+    711: (
+        "Servicios artísticos, culturales y deportivos, y otros servicios relacionados"
+    ),
     712: "Museos, sitios históricos, zoológicos y similares",
-    713: "Servicios de entretenimiento en instalaciones recreativas y otros servicios recreativos",
+    713: (
+        "Servicios de entretenimiento en instalaciones recreativas y otros "
+        "servicios recreativos"
+    ),
     721: "Servicios de alojamiento temporal",
     722: "Servicios de preparación de alimentos y bebidas",
     811: "Servicios de reparación y mantenimiento",
