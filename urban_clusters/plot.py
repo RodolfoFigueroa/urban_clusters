@@ -187,6 +187,10 @@ def plot_centroids(
 
     fig, axes = plt.subplots(num_rows, 2, figsize=figsize, subplot_kw=dict(polar=True))
 
+    # Fix if number of rows is one
+    if num_rows == 1:
+        axes = axes.reshape(1, -1)
+
     for centroid_idx, row in df_centroids.iterrows():
         if not isinstance(centroid_idx, int):
             err = "Centroid index must be an integer."

@@ -113,6 +113,7 @@ def generate_hulls(
     *,
     cluster_col: str,
     buffer: float = 20,
+    alpha: float = 0.2,
 ) -> gpd.GeoDataFrame:
     """Generate concave hulls for each cluster of points.
 
@@ -139,7 +140,7 @@ def generate_hulls(
     hulls = {}
     for cluster_id, subdf in points.groupby(cluster_col):
         geoms = subdf["geometry"].to_numpy()
-        hulls[cluster_id] = generate_hull(geoms)
+        hulls[cluster_id] = generate_hull(geoms, alpha=alpha)
 
     df_hulls = pd.Series(hulls).rename("geometry").reset_index()
     return (
@@ -180,7 +181,7 @@ def get_hotspot_mask(
     distance_band: float,
     *,
     jobs_col: str = "jobs",
-) -> pd.Series:
+) -> np.ndarray:
     """Identify statistically significant hotspots using the Getis-Ord Gi* statistic.
 
     Parameters
@@ -207,7 +208,7 @@ def get_hotspot_mask(
 
 def cluster_points_weighted(
     points: gpd.GeoDataFrame,
-    hotspot_mask: pd.Series,
+    hotspot_mask: np.ndarray,
     *,
     hdbscan_params: dict,
 ) -> pd.Series:

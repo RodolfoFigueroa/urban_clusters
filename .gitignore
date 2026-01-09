@@ -219,3 +219,6 @@ __marimo__/
 .DS_Store
 *.zip
 results/
+cache*/
+figures/
+points/
