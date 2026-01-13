@@ -21,6 +21,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "shapely>=2.1.2",
     "streamlit>=1.52.2",
+    "streamlit-folium>=0.26.1",
 ]
 
 

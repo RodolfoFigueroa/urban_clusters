@@ -1,4 +1,5 @@
 import geopandas as gpd
+import matplotlib.colors as mcol
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
@@ -10,7 +11,6 @@ from matplotlib.colorbar import ColorbarBase
 from matplotlib.figure import Figure
 from matplotlib.projections.polar import PolarAxes
 from photutils.utils import make_random_cmap
-import matplotlib.colors as mcol
 
 from urban_clusters.constants import (
     SECTOR_NAME_MAP,
@@ -222,4 +222,6 @@ def plot_centroids(
 def generate_unique_colors(labels: pd.Series) -> pd.Series:
     cmap = make_random_cmap(labels.nunique(dropna=True), seed=42)
     norm = mcol.Normalize(vmin=labels.min(), vmax=labels.max())
-    return labels.map(lambda x: mcol.rgb2hex(cmap(norm(x))) if pd.notna(x) else "#a9a9a9")
+    return labels.map(
+        lambda x: mcol.rgb2hex(cmap(norm(x))) if pd.notna(x) else "#a9a9a9",
+    )

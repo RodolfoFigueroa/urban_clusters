@@ -6,6 +6,8 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import shapely
+from pyproj import CRS
 
 from urban_clusters.spatial import (
     cluster_points,
@@ -37,7 +39,32 @@ def hash_point_gdf(points: gpd.GeoDataFrame, *, precision: float = 10) -> str:
     ]
 
 
-def get_spatial_hash(args: dict, points_hash: str) -> str:
+def hash_polygon(
+    polygon: shapely.geometry.Polygon,
+    *,
+    crs: CRS,
+    precision: float = 10,
+) -> str:
+    """Create a hash from a Polygon geometry."""
+    x, y = polygon.exterior.coords.xy
+    df = gpd.GeoDataFrame(geometry=gpd.points_from_xy(x, y), crs=crs)
+    return hash_point_gdf(df, precision=precision)
+
+
+def hash_polygon_gdf(polygon: gpd.GeoDataFrame, *, precision: float = 10) -> str:
+    if len(polygon) != 1:
+        err = "hash_polygon_gdf only supports GeoDataFrames with a single polygon."
+        raise ValueError(err)
+
+    crs = polygon.crs
+    if crs is None:
+        err = "Input GeoDataFrame must have a defined CRS."
+        raise ValueError(err)
+
+    return hash_polygon(polygon.iloc[0].geometry, crs=crs, precision=precision)
+
+
+def hash_spatial_args(args: dict, points_hash: str) -> str:
     return hashlib.sha256(
         (
             str(abs(hash(args["method"])))
@@ -48,10 +75,36 @@ def get_spatial_hash(args: dict, points_hash: str) -> str:
     ).hexdigest()[:HASH_LENGTH]
 
 
+def get_or_load_filtered_points(
+    bounds: gpd.GeoDataFrame,
+    *,
+    cache_path: Path,
+) -> gpd.GeoDataFrame:
+    bounds_hash = hash_polygon_gdf(bounds)
+    filtered_points_cache_path = cache_path / f"{bounds_hash}.gpkg"
+
+    if filtered_points_cache_path.exists():
+        filtered_points = gpd.read_file(filtered_points_cache_path)
+    else:
+        all_points = get_or_load_all_jobs(cache_path)
+        filtered_points = gpd.sjoin(
+            all_points,
+            bounds,
+            how="inner",
+            predicate="within",
+        ).drop(columns=["index_right"])
+        filtered_points.to_file(filtered_points_cache_path)
+    return filtered_points
+
+
 def get_or_load_hotspot_mask(
     points: gpd.GeoDataFrame,
-    hotspot_cache_path: Path,
+    *,
+    cache_path: Path,
 ) -> np.ndarray:
+    points_hash = hash_point_gdf(points)[:HASH_LENGTH]
+    hotspot_cache_path = cache_path / f"{points_hash}.npy"
+
     if hotspot_cache_path.exists():
         hotspot_mask = np.load(hotspot_cache_path)
     else:
@@ -60,20 +113,19 @@ def get_or_load_hotspot_mask(
     return hotspot_mask
 
 
-def get_hashes(points: gpd.GeoDataFrame, args: dict) -> dict[str, str]:
-    hashes = {"hotspots": hash_point_gdf(points)[:HASH_LENGTH]}
-    hashes["spatial"] = get_spatial_hash(args, hashes["hotspots"])
-    return hashes
-
-
 def get_or_load_point_clusters(
     points: gpd.GeoDataFrame,
     args: dict,
     hotspot_mask: np.ndarray,
-    cluster_cache_path: Path,
+    *,
+    cache_path: Path,
 ) -> gpd.GeoDataFrame:
+    points_hash = hash_point_gdf(points)[:HASH_LENGTH]
+    spatial_hash = hash_spatial_args(args, points_hash)
+    cluster_cache_path = cache_path / f"{spatial_hash}.gpkg"
+
     if cluster_cache_path.exists():
-        points = gpd.read_file(cluster_cache_path)
+        out = gpd.read_file(cluster_cache_path)
     else:
         if args["method"] == 1:
             clusters = cluster_points(
@@ -96,9 +148,9 @@ def get_or_load_point_clusters(
             err = f"Unknown method: {args['method']}"
             raise ValueError(err)
 
-        points = points.assign(spatial_cluster=clusters)
-        points.to_file(cluster_cache_path)
-    return points
+        out = points.assign(spatial_cluster=clusters)
+        out.to_file(cluster_cache_path)
+    return out
 
 
 def get_or_load_all_jobs(cache_path: Path) -> gpd.GeoDataFrame:
